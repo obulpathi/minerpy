@@ -24,10 +24,11 @@ import re
 import base64
 import httplib
 import sys
+from time import sleep
 from multiprocessing import Process
 
 ERR_SLEEP = 15
-MAX_NONCE = 1000000L
+MAX_NONCE = 1000000000000L
 
 settings = {}
 pp = pprint.PrettyPrinter(indent=4)
@@ -71,6 +72,8 @@ class BitcoinRPC:
     def getblockcount(self):
         return self.rpc('getblockcount')
     def getwork(self, data=None):
+        print "Sleeping before going for get work"
+        sleep(60)
         return self.rpc('getwork', data)
 
 def uint32(x):
@@ -100,6 +103,8 @@ class Miner:
         self.max_nonce = MAX_NONCE
 
     def work(self, datastr, targetstr):
+        print "datastr: ", datastr
+        print "targerstr: ", targetstr
         # decode work data hex string to binary
         static_data = datastr.decode('hex')
         static_data = bufreverse(static_data)
@@ -132,7 +137,7 @@ class Miner:
             hash = hash_o.digest()
 
             # quick test for winning solution: high 16 bits zero?
-            if hash[-4:] != '\0\0\0\0':
+            if hash[-3:] != '\0\0\0':
                 continue
 
             # convert binary hash to 256-bit Python long
@@ -141,7 +146,9 @@ class Miner:
 
             hash_str = hash.encode('hex')
             l = long(hash_str, 16)
-
+            
+            print "target: ", target
+            print "nonce: ", l
             # proof-of-work test:  hash < target
             if l < target:
                 print time.asctime(), "PROOF-OF-WORK found: %064x" % (l,)
